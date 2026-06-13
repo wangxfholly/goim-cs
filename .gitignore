@@ -1,0 +1,21 @@
+# Binaries
+/bin/
+*.exe
+*.out
+*.test
+
+# Go workspace / build cache
+/vendor/
+go.work
+go.work.sum
+
+# Coverage
+*.cover
+coverage.out
+coverage.html
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp

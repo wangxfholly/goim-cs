@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package goimcs.v1;
+
+option go_package = "github.com/wangxfholly/goim-cs/api/proto;pb";
+
+// 消息体三层结构（设计文档 5.1）:
+//   1. 路由层(Envelope) —— 谁发给谁、哪个会话、怎么投递
+//   2. 标识层(Identity) —— 三个独立职责的消息 ID
+//   3. 内容层(Content)  —— 真正的消息内容，按 type 多态
+message Message {
+  Envelope envelope = 1;
+  Identity identity = 2;
+  Content  content  = 3;
+}
+
+// 路由层
+message Envelope {
+  string conversation_id = 1; // 会话 ID
+  int64  from_uid        = 2; // 发送者
+  ConvType conv_type     = 3; // 单聊/群聊/客服
+  SenderRole sender_role = 4; // 用户/人工坐席/机器人/系统（客服场景，设计文档 6.3）
+}
+
+// 标识层 —— 三个 ID 各司其职（设计文档 5.2）
+message Identity {
+  string client_msg_id = 1; // 客户端 UUID，幂等去重用
+  int64  server_msg_id = 2; // Snowflake，全局唯一
+  int64  conv_seq      = 3; // 会话内严格递增，时序/补洞用
+  int64  send_time_ms  = 4; // 服务端落库时间
+}
+
+// 内容层
+message Content {
+  MsgType type = 1;
+  oneof payload {
+    TextContent  text  = 2;
+    ImageContent image = 3;
+    CustomContent custom = 4; // 客服卡片、工单等业务自定义
+  }
+}
+
+message TextContent  { string text = 1; }
+message ImageContent { string url = 1; int32 width = 2; int32 height = 3; }
+message CustomContent { string schema = 1; bytes data = 2; }
+
+enum ConvType {
+  CONV_UNKNOWN = 0;
+  CONV_SINGLE  = 1; // 单聊
+  CONV_GROUP   = 2; // 群聊
+  CONV_CS      = 3; // 客服
+}
+
+enum SenderRole {
+  ROLE_UNKNOWN = 0;
+  ROLE_USER    = 1;
+  ROLE_AGENT   = 2; // 人工坐席
+  ROLE_BOT     = 3; // 机器人
+  ROLE_SYSTEM  = 4; // 系统消息
+}
+
+enum MsgType {
+  MSG_UNKNOWN = 0;
+  MSG_TEXT    = 1;
+  MSG_IMAGE   = 2;
+  MSG_CUSTOM  = 3;
+}
