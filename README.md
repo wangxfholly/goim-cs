@@ -84,3 +84,4 @@ go run ./cmd/demo
 - **会话 seq**：Redis `INCR key=conv:seq:{id}`。
 - **Job 投递**：经 Kafka 异步削峰，Comet 多实例水平扩展。
 - **网关 I/O**：Go netpoll（epoll 等价、事件驱动），避免 2 goroutine/连接 的开销。
+# goim-cs
